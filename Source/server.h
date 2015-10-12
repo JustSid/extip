@@ -19,4 +19,4 @@
 #import <Foundation/Foundation.h>
 
 extern int ServerMain();
-extern pid_t StartServer(const char *file);
+extern pid_t StartServer();

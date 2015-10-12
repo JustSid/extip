@@ -114,14 +114,21 @@ int ServerMain()
 	return 0;
 }
 
-pid_t StartServer(const char *file)
+pid_t StartServer()
 {
 	pid_t pid = fork();
 
 	if(pid == 0)
 	{
+		CFBundleRef bundle = CFBundleGetMainBundle();
+		CFURLRef url = CFBundleCopyExecutableURL(bundle);
+
+		const char *file = [[(__bridge NSURL *)url path] UTF8String];
+
 		const char *args[] = { file, "--start", NULL };
 		execv(file, (char *const *)args);
+
+		CFRelease(url);
 		exit(EXIT_FAILURE); // Like... Alright then
 	}
 

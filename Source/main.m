@@ -19,8 +19,6 @@
 #import <Foundation/Foundation.h>
 #import "server.h"
 
-const char **argv = NULL;
-
 typedef NS_ENUM(NSInteger, CommandAction)
 {
 	CommandActionGetIP,
@@ -33,7 +31,7 @@ CFMessagePortRef GetRemotePort(bool createIfNeeded)
 	CFMessagePortRef remotePort = CFMessagePortCreateRemote(nil, CFSTR("com.widerwille.extipd.port.server"));
 	if(!remotePort && createIfNeeded)
 	{
-		pid_t pid = StartServer(argv[0]);
+		pid_t pid = StartServer();
 		if(pid > 0)
 		{
 			do {
@@ -57,10 +55,8 @@ CFMessagePortRef GetRemotePort(bool createIfNeeded)
 	return remotePort;
 }
 
-int main(int argc, const char *targv[])
+int main(int argc, const char *argv[])
 {
-	argv = targv;
-
 	@autoreleasepool
 	{
 		CommandAction action;
