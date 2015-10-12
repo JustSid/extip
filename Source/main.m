@@ -23,7 +23,8 @@ typedef NS_ENUM(NSInteger, CommandAction)
 {
 	CommandActionGetIP,
 	CommandActionStartDaemon,
-	CommandActionStopDaemon
+	CommandActionStopDaemon,
+	CommandActionReloadDaemon
 };
 
 CFMessagePortRef GetRemotePort(bool createIfNeeded)
@@ -77,6 +78,10 @@ int main(int argc, const char *argv[])
 			{
 				action = CommandActionStopDaemon;
 			}
+			else if(strcmp(argument, "--reload") == 0)
+			{
+				action = CommandActionReloadDaemon;
+			}
 			else if(strcmp(argument, "--ip") == 0)
 			{
 				action = CommandActionGetIP;
@@ -94,12 +99,14 @@ int main(int argc, const char *argv[])
 				return ServerMain();
 
 			case CommandActionStopDaemon:
+			case CommandActionReloadDaemon:
 			{
 				CFMessagePortRef port = GetRemotePort(false);
 				if(!port)
 					return EXIT_SUCCESS;
 
-				SInt32 status = CFMessagePortSendRequest(port, 1, nil, 10.0, 10.0, NULL, NULL);
+				SInt32 message = (action == CommandActionStopDaemon) ? 1 : 2;
+				SInt32 status = CFMessagePortSendRequest(port, message, nil, 10.0, 10.0, NULL, NULL);
 				CFRelease(port);
 
 				return (status == kCFMessagePortSuccess) ? EXIT_SUCCESS : EXIT_FAILURE;

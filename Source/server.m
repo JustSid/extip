@@ -66,6 +66,11 @@ static CFDataRef IPCCallback(__unused CFMessagePortRef port, SInt32 messageID, _
 			CFRunLoopStop(CFRunLoopGetMain());
 			return NULL;
 		}
+		case 2:
+		{
+			FetchIPAddress();
+			return NULL;
+		}
 
 		default:
 			return NULL;
