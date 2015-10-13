@@ -16,7 +16,19 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <Foundation/Foundation.h>
+#ifndef __SERVER_H__
+#define __SERVER_H__
+
+#import <CoreFoundation/CoreFoundation.h>
+
+typedef enum
+{
+	ServerCommandGetIP,
+	ServerCommandStop,
+	ServerCommandReload
+} ServerCommand;
 
 extern int ServerMain();
 extern pid_t StartServer();
+
+#endif
