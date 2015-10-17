@@ -21,6 +21,8 @@
 
 #import <CoreFoundation/CoreFoundation.h>
 
+#define kServerPortName CFSTR("com.widerwille.extip.port")
+
 typedef enum
 {
 	ServerCommandGetIP,

@@ -29,7 +29,7 @@ typedef enum
 
 CFMessagePortRef GetRemotePort(bool createIfNeeded)
 {
-	CFMessagePortRef remotePort = CFMessagePortCreateRemote(kCFAllocatorDefault, CFSTR("com.widerwille.extipd.port.server"));
+	CFMessagePortRef remotePort = CFMessagePortCreateRemote(kCFAllocatorDefault, kServerPortName);
 	if(!remotePort && createIfNeeded)
 	{
 		pid_t pid = StartServer();
@@ -49,7 +49,7 @@ CFMessagePortRef GetRemotePort(bool createIfNeeded)
 				}
 
 				usleep(500);
-				remotePort = CFMessagePortCreateRemote(kCFAllocatorDefault, CFSTR("com.widerwille.extipd.port.server"));
+				remotePort = CFMessagePortCreateRemote(kCFAllocatorDefault, kServerPortName);
 
 			} while(!remotePort);
 		}

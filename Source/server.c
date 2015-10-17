@@ -213,7 +213,7 @@ int ServerMain()
 	}
 
 	// CFMessagePort
-	CFMessagePortRef localPort = CFMessagePortCreateLocal(nil, CFSTR("com.widerwille.extipd.port.server"), &IPCCallback, nil, nil);
+	CFMessagePortRef localPort = CFMessagePortCreateLocal(nil, kServerPortName, &IPCCallback, nil, nil);
 	CFRunLoopSourceRef runLoopSource = CFMessagePortCreateRunLoopSource(nil, localPort, 0);
 
 	CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopCommonModes);
