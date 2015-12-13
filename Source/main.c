@@ -58,6 +58,63 @@ CFMessagePortRef GetRemotePort(bool createIfNeeded)
 	return remotePort;
 }
 
+static int PerformCommand(CommandAction command)
+{
+	switch(command)
+	{
+		case CommandActionStartDaemon:
+			return ServerMain();
+
+		case CommandActionStopDaemon:
+		case CommandActionReloadDaemon:
+		{
+			CFMessagePortRef port = GetRemotePort(false);
+			if(!port)
+				return EXIT_SUCCESS;
+
+			SInt32 message = (command == CommandActionStopDaemon) ? ServerCommandStop : ServerCommandReload;
+			SInt32 status = CFMessagePortSendRequest(port, message, nil, 10.0, 10.0, NULL, NULL);
+			CFRelease(port);
+
+			return (status == kCFMessagePortSuccess) ? EXIT_SUCCESS : EXIT_FAILURE;
+		}
+
+		case CommandActionGetIP:
+		{
+			CFMessagePortRef port = GetRemotePort(true);
+			if(!port)
+				return EXIT_FAILURE;
+
+			CFDataRef data;
+			SInt32 status = CFMessagePortSendRequest(port, 0, nil, 10.0, 10.0, kCFRunLoopDefaultMode, &data);
+
+			switch(status)
+			{
+				case kCFMessagePortSuccess:
+				{
+					CFStringRef string = CFStringCreateFromExternalRepresentation(kCFAllocatorDefault, data, kCFStringEncodingUTF8);
+					fprintf(stdout, "%s", CFStringGetCStringPtr(string, kCFStringEncodingUTF8));
+
+					CFRelease(string);
+					CFRelease(data);
+					break;
+				}
+
+				case kCFMessagePortIsInvalid:
+				case kCFMessagePortTransportError:
+				case kCFMessagePortBecameInvalidError:
+					CFRelease(port);
+
+					PerformCommand(CommandActionStopDaemon);
+					return PerformCommand(command);
+			}
+
+			CFRelease(port);
+			return (status == kCFMessagePortSuccess) ? EXIT_SUCCESS : EXIT_FAILURE;
+		}
+	}
+}
+
 int main(int argc, const char *argv[])
 {
 	CommandAction action;
@@ -93,47 +150,5 @@ int main(int argc, const char *argv[])
 		}
 	}
 
-	switch(action)
-	{
-		case CommandActionStartDaemon:
-			return ServerMain();
-
-		case CommandActionStopDaemon:
-		case CommandActionReloadDaemon:
-		{
-			CFMessagePortRef port = GetRemotePort(false);
-			if(!port)
-				return EXIT_SUCCESS;
-
-			SInt32 message = (action == CommandActionStopDaemon) ? ServerCommandStop : ServerCommandReload;
-			SInt32 status = CFMessagePortSendRequest(port, message, nil, 10.0, 10.0, NULL, NULL);
-			CFRelease(port);
-
-			return (status == kCFMessagePortSuccess) ? EXIT_SUCCESS : EXIT_FAILURE;
-		}
-
-		case CommandActionGetIP:
-		{
-			CFMessagePortRef port = GetRemotePort(true);
-			if(!port)
-				return EXIT_FAILURE;
-
-			CFDataRef data;
-			SInt32 status = CFMessagePortSendRequest(port, 0, nil, 10.0, 10.0, kCFRunLoopDefaultMode, &data);
-
-			if(status == kCFMessagePortSuccess)
-			{
-				CFStringRef string = CFStringCreateFromExternalRepresentation(kCFAllocatorDefault, data, kCFStringEncodingUTF8);
-				fprintf(stdout, "%s", CFStringGetCStringPtr(string, kCFStringEncodingUTF8));
-
-				CFRelease(string);
-				CFRelease(data);
-			}
-
-			CFRelease(port);
-			return (status == kCFMessagePortSuccess) ? EXIT_SUCCESS : EXIT_FAILURE;
-		}
-	}
-
-	return 0;
+	return PerformCommand(action);
 }
